@@ -1,0 +1,49 @@
+
+syntax = "proto3";
+
+package book;
+
+message Grouping { // Used to aggregate multiple elements (books, chapters), leaf nodes are of type Document
+  string title = 1; // "Standard Works", "New Testament", "Matthew"
+  optional string long_title = 5; // "The Second Book of Peter"
+  repeated string aliases = 2; // "OT", "Matt"
+  bool namedInRef = 3; // Whether or not the name/aliases should be searched through when locating a reference
+
+  //optional string namePrefix = 4; // "Chapter", "Psalm", "Section", "Book" -- APPLIES TO CHILDREN
+
+  repeated GroupingChild children = 3;
+
+  message GroupingChild {
+    oneof child {
+      Grouping nested = 1;
+      Document content = 2;  
+    }
+  }
+}
+
+message Document {
+  string name = 1;
+  repeated DocumentElement elements = 2;
+  message DocumentElement {
+    oneof node {
+      Verse verse = 1;
+      Paragraph paragraph = 2;
+      List list = 3;
+    }
+  }
+
+  message Verse {
+    repeated string content = 1;
+  }
+  message Paragraph {
+    string content = 1;
+  }
+  message List {
+    enum Type {
+      ORDERED_LIST = 1;
+      UNORDERED_LIST = 2;
+    }
+    repeated DocumentElement item;
+  }
+}
+

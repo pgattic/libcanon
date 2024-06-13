@@ -1,0 +1,36 @@
+
+syntax = "proto3";
+
+package book;
+
+message Item {
+    oneof item_type {
+        Grouping group = 1; // Branch
+        Document document = 2; // Leaf
+    }
+}
+
+message Grouping {
+    string title = 1; // "Standard Works", "New Testament", "Matthew"
+    repeated string aliases = 4; // "OT", "Matt"
+    bool named_in_ref = 5; // Whether or not the name/aliases should be searched through when locating a reference
+    optional string children_prefix = 6; // "Chapter", "Book", "Section"
+    repeated Item children = 7;
+}
+
+message Document {
+    string name = 1; // "1"
+    repeated DocumentElement elements = 2;
+}
+
+message DocumentElement { // Rule: Everything that can be annotated must be in a DocumentElement
+    oneof element_type {
+        string verse = 1; // Verse
+        string paragraph = 2; // Paragraph
+        string heading = 3; // "The Second Book of Peter"
+        string subheading = 4; // "His reign and ministry"
+    }
+}
+
+
+

@@ -1,0 +1,21 @@
+
+{
+  "grouping": {
+    "title": "New Testament",
+    "long-title": "The New Testament of our Lord and Saviour Jesus Christ",
+    "subtitle": "Translated out of the original Greek ...",
+    "aliases": ["NT"],
+    "nested": {
+      "title": "Matthew",
+      "long-title": "The Gospel According To St. Matthew",
+      "aliases": ["Matt", "Mat"],
+      "children": [
+        {
+          "title": "1",
+          "long-title": "Chapter 1"
+        }
+      ]
+    }
+  }
+}
+
