@@ -19,7 +19,7 @@ message Grouping {
 }
 
 message Document {
-    string name = 1; // "1"
+    string title = 1; // "1"
     repeated DocumentElement elements = 2;
 }
 
