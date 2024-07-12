@@ -1,5 +1,6 @@
 import book_pb2
 import protobuf_frontend as pb
+from google.protobuf.json_format import MessageToJson, Parse
 
 def create_sample_data():
     # Create some DocumentElements
@@ -19,15 +20,21 @@ def create_sample_data():
     print(type(verse))
     print(type(group))
 
-    return document
+    return group
 
-def serialize_to_file(item, filename):
+def serialize_to_pb(item, filename):
     with open(filename, 'wb') as f:
         f.write(item.SerializeToString())
 
+def serialize_to_json(item, filename):
+    json_str = MessageToJson(item)
+    with open(filename, 'w') as f:
+        f.write(json_str)
+
 def main():
     sample_data = create_sample_data()
-    serialize_to_file(sample_data, 'book_data.pb')
+    serialize_to_json(sample_data, "book_data.json")
+    serialize_to_pb(sample_data, 'book_data.pb')
 
 if __name__ == "__main__":
     main()

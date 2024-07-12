@@ -25,22 +25,18 @@ class el:
         result.subheading = text
         return result
 
-@staticmethod
 def document_item(title: str, elements: list[book_pb2.DocumentElement]):
     return _item(_document(title, elements))
 
-@staticmethod
 def _document(title: str, elements: list[book_pb2.DocumentElement]):
     result = book_pb2.Document()
     result.title = title
     result.elements.extend(elements)
     return result
 
-@staticmethod
 def grouping_item(title: str, aliases: list[str], named_in_ref: bool, children_prefix: str = None, children: list[book_pb2.Item] = []):
     return _item(_grouping(title, aliases, named_in_ref, children_prefix, children))
 
-@staticmethod
 def _grouping(title: str, aliases: list[str], named_in_ref: bool, children_prefix: str = None, children: list[book_pb2.Item] = []):
     result = book_pb2.Grouping()
     result.title = title
@@ -51,7 +47,6 @@ def _grouping(title: str, aliases: list[str], named_in_ref: bool, children_prefi
     result.children.extend(children)
     return result
 
-@staticmethod
 def _item(item):
     if type(item) is book_pb2.Document:
         result = book_pb2.Item()

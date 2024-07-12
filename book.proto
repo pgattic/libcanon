@@ -12,25 +12,27 @@ message Item {
 
 message Grouping {
     string title = 1; // "Standard Works", "New Testament", "Matthew"
-    repeated string aliases = 4; // "OT", "Matt"
-    bool named_in_ref = 5; // Whether or not the name/aliases should be searched through when locating a reference
-    optional string children_prefix = 6; // "Chapter", "Book", "Section"
-    repeated Item children = 7;
+    repeated string aliases = 2; // "OT", "Matt"
+    bool named_in_ref = 3; // Whether or not the title/aliases should be searched when locating a reference
+    optional string children_prefix = 4; // "Chapter", "Book", "Section"
+    repeated Item children = 5;
 }
 
 message Document {
     string title = 1; // "1"
     repeated DocumentElement elements = 2;
+    optional string verse_prefix = 3; // "" for scriptures, "v" by default
+    optional string paragraph_prefix = 4; // "p" by default
+    optional string heading_prefix = 5; // "h" by default
+    optional string subheading_prefix = 6; // "s" by default
 }
 
 message DocumentElement { // Rule: Everything that can be annotated must be in a DocumentElement
     oneof element_type {
-        string verse = 1; // Verse
-        string paragraph = 2; // Paragraph
-        string heading = 3; // "The Second Book of Peter"
-        string subheading = 4; // "His reign and ministry"
+        string verse = 3; // Verse
+        string paragraph = 4; // Paragraph
+        string heading = 5; // "The Second Book of Peter"
+        string subheading = 6; // "His reign and ministry"
     }
 }
-
-
 
