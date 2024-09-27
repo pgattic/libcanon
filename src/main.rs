@@ -23,7 +23,7 @@ fn main() {
 
     match result {
         Ok(citation) => {
-            println!("{}", citation.text);
+            print!("{}", citation.text);
         }
         Err((problem, book)) => {
             eprintln!("{}: {}", problem, book);
