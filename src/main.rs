@@ -2,6 +2,7 @@ pub mod citation;
 pub mod config_file;
 pub mod reference;
 
+use reference::Reference;
 use citation::*;
 use std::env;
 use dirs::home_dir;
@@ -18,15 +19,18 @@ fn main() {
     }
 
     let canon_path: PathBuf = home_dir().unwrap().join(".canon");
+    //let canon_path: PathBuf = PathBuf::from_str("/home/pgattic/.canon").unwrap();
 
-    let result = cite(canon_path, &args[1]);
-
+    // Parse the reference
+    let reference = Reference::from_str(&args[1]).unwrap();
+    println!("{:?}", reference);
+    let result = cite(&canon_path, &reference);
     match result {
         Ok(citation) => {
-            print!("{}", citation.text);
+            println!("{:?}", citation);
         }
-        Err((problem, book)) => {
-            eprintln!("{}: {}", problem, book);
+        Err(problem) => {
+            eprintln!("{}", problem);
         }
     }
 }

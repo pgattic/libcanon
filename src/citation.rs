@@ -6,63 +6,43 @@ use crate::config_file::*;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Citation {
-    pub reference: Reference,
-    //pub book: String, // The looked-up book name; distinct from the reference's book attribute
-    pub text: String, // This should definitely be expanded upon in the future.
+    //pub reference: Reference,
+    pub chapters: Vec<Chapter>,
 }
 
-/// Mama mia this function sure is a piece-a spaghetti!!
-/// This function searches the user's canon directory for the reference given.
-pub fn cite(path: PathBuf, reference: &str) -> Result<Citation, (&str, String)> {
-    // Parse the reference
-    let reference = Reference::from_str(reference).unwrap();
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Chapter {
+    pub path: PathBuf,
+    pub name: String,
+    pub verses: Vec<Verse>,
+}
 
-    // Directory where Canon stores its texts and global config
-    let texts_path = path.join("texts");
-    
-    // Read and marshal Canon's global config file
-    let config_contents = fs::read_to_string(texts_path.join("config.json")).unwrap();
-    let config = GlobalConfig::from_str(config_contents).unwrap();
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Verse {
+    //pub reference: Reference,
+    //pub path: PathBuf,
+    pub verse: usize,
+    pub content: String,
+}
+
+/// This function searches the user's canon directory for the reference given.
+pub fn cite(path: &PathBuf, reference: &Reference) -> Result<Citation, String> {
 
     let book_path = find_book(path, &reference.book).unwrap();
 
-    let mut res_text = "".to_string();
-    for chapter in &reference.indications {
-        let ch_file = fs::read_to_string(
-            book_path
-                .join(&chapter.chapter)
-        ).unwrap();
-        for r in &chapter.verse_ranges {
-            match r {
-                RefVerse::All => {
-                    res_text.push_str(&ch_file.trim());
-                }
-                RefVerse::Single(verse_num) => {
-                    res_text.push_str(
-                        &ch_file.split('\n')
-                            .collect::<Vec<_>>()[verse_num-1]
-                    );
-                }
-                RefVerse::Range(v_range) => {
-                    for verse_num in v_range.clone().into_iter() {
-                        res_text.push_str(
-                            &ch_file
-                                .split('\n')
-                                .collect::<Vec<_>>()[verse_num-1]
-                        );
-                    }
-                }
-            }
-            res_text.push('\n');
-        }
+    let mut res_chs: Vec<Chapter> = vec![];
+
+    for ref_ind in &reference.indications {
+        let ch_path = book_path.join(&ref_ind.chapter);
+        res_chs.push(Chapter::from_ch_reference(ch_path, &ref_ind.verse_ranges));
     }
-    return Ok(Citation {
-        reference,
-        text: res_text,
-    });
+
+    Ok(
+        Citation { chapters: res_chs}
+    )
 }
 
-pub fn find_book(path: PathBuf, reference: &str) -> Result<PathBuf, &str> {
+pub fn find_book(path: &PathBuf, reference: &str) -> Result<PathBuf, String> {
 
     // Directory where Canon stores its texts and global config
     let texts_path = path.join("texts");
@@ -84,7 +64,6 @@ pub fn find_book(path: PathBuf, reference: &str) -> Result<PathBuf, &str> {
         for (book, aliases) in canon_config.aliases {
             // Case-insensitive search
             let lowers: Vec<String> = aliases
-                .clone()
                 .into_iter()
                 .map(|s| s.to_lowercase())
                 .collect();
@@ -94,7 +73,54 @@ pub fn find_book(path: PathBuf, reference: &str) -> Result<PathBuf, &str> {
             }
         }
     }
-    Err("Book not found")
+    Err("Book not found".to_string())
+}
+
+impl Chapter {
+    pub fn from_ch_reference(ch_path: PathBuf, references: &Vec<RefVerse>) -> Self {
+        let mut result = Self {
+            name: "".to_string(),
+            path: ch_path.clone(),
+            verses: vec![],
+        };
+
+        let ch_file = fs::read_to_string(&ch_path).unwrap();
+        let split: &Vec<&str> = &ch_file.split('\n').collect();
+
+        for r in references {
+            match r {
+                RefVerse::All => {
+                    for (i, verse) in split.into_iter().enumerate() {
+                        result.verses.push(
+                            Verse {
+                                verse: i + 1,
+                                content: verse.to_string()
+                            }
+                        );
+                    }
+                }
+                RefVerse::Single(verse_num) => {
+                    result.verses.push(
+                        Verse {
+                            verse: *verse_num,
+                            content: split[verse_num-1].to_string()
+                        }
+                    );
+                }
+                RefVerse::Range(v_range) => {
+                    for i in v_range.clone().into_iter() {
+                        result.verses.push(
+                            Verse {
+                                verse: i,
+                                content: split[i-1].to_string()
+                            }
+                        );
+                    }
+                }
+            }
+        }
+        result
+    }
 }
 
 
