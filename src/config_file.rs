@@ -14,15 +14,15 @@ impl GlobalConfig {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct CanonConfig {
+pub struct PackageConfig {
     pub aliases: HashMap<String, Vec<String>>
 }
 
-impl CanonConfig {
+impl PackageConfig {
     /// # Example
     ///
     /// ```
-    /// use libcanon::config_file::CanonConfig;
+    /// use libcanon::config_file::PackageConfig;
     /// let json_data = r#"
     /// {
     ///   "aliases": {
@@ -34,7 +34,7 @@ impl CanonConfig {
     /// "#;
     /// 
     /// // Deserialize JSON into BookAliases struct
-    /// let book_aliases: CanonConfig = serde_json::from_str(json_data).expect("Failed to deserialize");
+    /// let book_aliases: PackageConfig = serde_json::from_str(json_data).expect("Failed to deserialize");
     /// 
     /// // Check if the deserialization worked correctly
     /// assert_eq!(book_aliases.aliases.len(), 3);
