@@ -117,39 +117,48 @@ impl Chapter {
             }
         };
 
-        let split: &Vec<&str> = &ch_file.split('\n').collect();
+        let split: &Vec<&str> = &ch_file.split('\n').map(&str::trim).collect();
 
         for r in references {
             match r {
                 RefVerse::All => {
                     for (i, verse) in split.into_iter().enumerate() {
-                        result.verses.push(
-                            Verse {
-                                verse: i + 1,
-                                content: verse.to_string()
-                            }
-                        );
+                        if !verse.is_empty() {
+                            result.verses.push(
+                                Verse {
+                                    verse: i + 1,
+                                    content: verse.to_string()
+                                }
+                            );
+                        }
                     }
                 }
                 RefVerse::Single(verse_num) => {
-                    result.verses.push(
-                        Verse {
-                            verse: *verse_num,
-                            content: split[verse_num-1].to_string()
-                        }
-                    );
-                }
-                RefVerse::Range(v_range) => {
-                    for i in v_range.clone().into_iter() {
+                    if !split[verse_num-1].is_empty() {
                         result.verses.push(
                             Verse {
-                                verse: i,
-                                content: split[i-1].to_string()
+                                verse: *verse_num,
+                                content: split[verse_num-1].to_string()
                             }
                         );
                     }
                 }
+                RefVerse::Range(v_range) => {
+                    for i in v_range.clone().into_iter() {
+                        if !split[i-1].is_empty() {
+                            result.verses.push(
+                                Verse {
+                                    verse: i,
+                                    content: split[i-1].to_string()
+                                }
+                            );
+                        }
+                    }
+                }
             }
+        }
+        if result.verses.is_empty() {
+            return Err("Verse does not exist");
         }
         Ok(result)
     }
