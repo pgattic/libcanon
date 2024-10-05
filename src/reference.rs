@@ -93,7 +93,7 @@ impl RefVerse {
     /// ```
     /// use libcanon::reference::RefVerse;
     /// assert_eq!(RefVerse::from_str("3"), Some(RefVerse::Single(3)));
-    /// assert_eq!(RefVerse::from_str("7-9"), Some(RefVerse::Range(7, 9)));
+    /// assert_eq!(RefVerse::from_str("7-9"), Some(RefVerse::Range(7..=9)));
     /// assert_eq!(RefVerse::from_str("abc"), None);
     /// ```
     pub fn from_str(src: &str) -> Option<Self> {
