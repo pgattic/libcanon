@@ -107,7 +107,7 @@ impl Chapter {
             verses: vec![],
         };
 
-        if let Err(_) = fs::exists(&ch_path) {
+        if !ch_path.exists() {
             return Err("Chapter not found");
         }
         let ch_file = match fs::read_to_string(&ch_path) {
