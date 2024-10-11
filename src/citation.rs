@@ -91,7 +91,7 @@ pub fn find_book(path: &PathBuf, reference: &str) -> Result<PathBuf, &'static st
                 .map(|s| s.to_lowercase())
                 .collect();
 
-            if lowers.contains(&reference.to_lowercase()) { // Found the book!
+            if lowers.contains(&reference.to_lowercase()) || book.to_lowercase() == reference.to_lowercase() { // Found the book!
                 return Ok(text_path.join(book));
             }
         }
