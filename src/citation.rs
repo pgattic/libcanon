@@ -7,6 +7,7 @@ use crate::config_file::*;
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Citation {
     //pub reference: Reference,
+    pub book_name: String,
     pub chapters: Vec<Chapter>,
 }
 
@@ -15,6 +16,7 @@ pub struct Chapter {
     pub path: PathBuf,
     pub name: String,
     pub verses: Vec<Verse>,
+    pub entire_chapter: bool,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -28,7 +30,8 @@ pub struct Verse {
 /// This function searches the user's canon directory for the reference given.
 pub fn cite(path: &PathBuf, reference: &Reference) -> Result<Citation, &'static str> {
 
-    let book_path = find_book(path, &reference.book)?;
+    let (book, book_path) = find_book(path, &reference.book)?;
+
 
     let mut res_chs: Vec<Chapter> = vec![];
 
@@ -44,11 +47,14 @@ pub fn cite(path: &PathBuf, reference: &Reference) -> Result<Citation, &'static 
     }
 
     Ok(
-        Citation { chapters: res_chs }
+        Citation {
+            chapters: res_chs,
+            book_name: book.to_string(),
+        }
     )
 }
 
-pub fn find_book(path: &PathBuf, reference: &str) -> Result<PathBuf, &'static str> {
+pub fn find_book(path: &PathBuf, reference: &str) -> Result<(String, PathBuf), &'static str> {
 
     // Directory where Canon stores its texts and global config
     let texts_path = path.join("texts");
@@ -92,7 +98,7 @@ pub fn find_book(path: &PathBuf, reference: &str) -> Result<PathBuf, &'static st
                 .collect();
 
             if lowers.contains(&reference.to_lowercase()) || book.to_lowercase() == reference.to_lowercase() { // Found the book!
-                return Ok(text_path.join(book));
+                return Ok((book.to_string(), text_path.join(book)));
             }
         }
     }
@@ -105,6 +111,7 @@ impl Chapter {
             name: "".to_string(),
             path: ch_path.clone(),
             verses: vec![],
+            entire_chapter: false,
         };
 
         if !ch_path.exists() {
@@ -122,6 +129,7 @@ impl Chapter {
         for r in references {
             match r {
                 RefVerse::All => {
+                    result.entire_chapter = true;
                     for (i, verse) in split.into_iter().enumerate() {
                         if !verse.is_empty() {
                             result.verses.push(
