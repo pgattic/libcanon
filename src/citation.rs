@@ -56,22 +56,9 @@ pub fn cite(path: &PathBuf, reference: &Reference) -> Result<Citation, &'static 
 
 pub fn find_book(path: &PathBuf, reference: &str) -> Result<(String, PathBuf), &'static str> {
 
-    // Directory where Canon stores its texts and global config
-    let texts_path = path.join("texts");
-    
-    // Read and marshal Canon's global config file
-    let config = match fs::read_to_string(texts_path.join("config.json")) {
-        Ok(data) => match GlobalConfig::from_str(data) {
-            Ok(config) => config,
-            Err(_) => {
-                return Err("Malformed Canon config");
-            }
-        }
-        Err(_) => {
-            return Err("Canon Config not set up");
-        }
-    };
+    let config = GlobalConfig::load(path)?;
 
+    let texts_path = path.join("texts");
     // Search the installed canons in order of their priority
     for dirname in config.priority {
         let text_path = texts_path.join(dirname);

@@ -1,5 +1,6 @@
+use std::fs;
+use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
-use serde_json::Result;
 use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -8,8 +9,42 @@ pub struct GlobalConfig {
 }
 
 impl GlobalConfig {
-    pub fn from_str(string: String) -> Result<Self> {
-        serde_json::from_str(&string)
+    pub fn load(path: &PathBuf) -> Result<Self, &'static str> {
+
+        // Directory where Canon stores its texts and global config
+        let texts_path = path.join("texts");
+
+        // Read and marshal Canon's global config file
+        return match fs::read_to_string(texts_path.join("config.json")) {
+            Ok(data) => match serde_json::from_str(&data) {
+                Ok(config) => Ok(config),
+                Err(_) => {
+                    return Err("Malformed Canon config");
+                }
+            }
+            Err(_) => { // Let's just make a new config then yeah
+                return Ok(Self{priority: vec![]});
+            }
+        }
+    }
+
+    pub fn store(&self, path: &PathBuf) -> Result<(), &'static str> {
+        // Directory where Canon stores its texts and global config
+        let texts_path = path.join("texts");
+
+        let file = match serde_json::to_string(self) {
+            Ok(data) => data,
+            Err(_) => {
+                return Err("Failed to create Global Config file");
+            }
+        };
+        match fs::write(texts_path.join("config.json"), file) {
+            Ok(()) => {},
+            Err(_) => {
+                return Err("Failed to write Global Config File");
+            }
+        }
+        Ok(())
     }
 }
 
@@ -40,9 +75,24 @@ impl PackageConfig {
     /// assert_eq!(book_aliases.aliases.len(), 3);
     /// assert_eq!(book_aliases.aliases["1 Nephi"], vec!["1Ne", "1 Ne", "1Ne.", "1 Ne."]);
     /// ```
-    pub fn from_str(string: String) -> Result<Self> {
+    pub fn from_str(string: String) -> serde_json::Result<Self> {
         serde_json::from_str(&string)
     }
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct PackageManagerConfig {
+    pub priority: Vec<String>,
+}
+
+impl PackageManagerConfig {
+
+    pub fn from_str(string: String) -> serde_json::Result<Self> {
+        serde_json::from_str(&string)
+    }
+
+    pub fn to_str(value: Self) -> serde_json::Result<String> {
+        serde_json::to_string(&value)
+    }
+}
 
