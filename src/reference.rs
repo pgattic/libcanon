@@ -1,10 +1,11 @@
 
+use std::fmt;
 use std::ops::RangeInclusive;
 
-#[derive(Clone, Debug, Eq, PartialEq)]
 /// Data structure for storing a complete scripture reference.
 ///
 /// Includes the Book name, chapters and verses.
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Reference {
     pub book: String,
     pub indications: Vec<RefIndic>,
@@ -46,6 +47,13 @@ impl Reference {
     }
 }
 
+impl fmt::Display for Reference {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let strings: Vec<String> = self.indications.iter().map(|x|{format!("{}", x)}).collect();
+        write!(f, "{} {}", self.book, strings.join("; "))
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RefIndic {
     pub chapter: String,
@@ -56,7 +64,6 @@ impl RefIndic {
     /// Marshals the reference string into the `Reference` data structure.
     ///
     /// # Examples
-    ///
     /// ```
     /// use libcanon::reference::RefIndic;
     /// assert_eq!(RefIndic::from_str("1:5-6").unwrap().chapter, "1");
@@ -80,6 +87,13 @@ impl RefIndic {
     }
 }
 
+impl fmt::Display for RefIndic {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let strings: Vec<String> = self.verse_ranges.iter().map(|x|{format!("{}", x)}).collect();
+        write!(f, "{}:{}", self.chapter, strings.join(", "))
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum RefVerse {
     All,
@@ -90,6 +104,7 @@ pub enum RefVerse {
 impl RefVerse {
     /// Could take "3" or "7-9"
     ///
+    /// # Examples
     /// ```
     /// use libcanon::reference::RefVerse;
     /// assert_eq!(RefVerse::from_str("3"), Some(RefVerse::Single(3)));
@@ -107,3 +122,20 @@ impl RefVerse {
         }
     }
 }
+
+impl fmt::Display for RefVerse {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Self::All => {
+                return write!(f, "");
+            }
+            Self::Single(v) => {
+                return write!(f, "{}", v);
+            }
+            Self::Range(range) => {
+                return write!(f, "{}-{}", range.start(), range.end());
+            }
+        }
+    }
+}
+

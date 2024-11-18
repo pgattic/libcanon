@@ -2,8 +2,11 @@ pub mod citation;
 pub mod config_file;
 pub mod reference;
 pub mod pkg_mgr;
+pub mod search;
 
+use git2::cert::SshHostKeyType;
 use reference::Reference;
+use libcanon::search::search;
 use citation::*;
 use std::env;
 use dirs::home_dir;
@@ -20,8 +23,9 @@ fn main() {
     }
 
     let canon_path: PathBuf = home_dir().unwrap().join(".canon");
-    //let canon_path: PathBuf = PathBuf::from_str("/home/pgattic/.canon").unwrap();
     let mut ref_input = "";
+    let mut verbose = false;
+    let mut show_nums = false;
 
     for (i, arg) in args[1..].iter().enumerate() {
         if arg == "list" {
@@ -42,6 +46,24 @@ fn main() {
                 _ => {}
             }
             return;
+        } else if arg == "search" {
+            match search(&canon_path, &args[i+2]) {
+                Err(what) => {println!("{}", what)}
+                Ok(results) => {
+                    for res in results {
+                        println!("{}\t{}", res.reference, res.text.trim());
+                    }
+                }
+            }
+            return;
+        } else if arg.starts_with('-') {
+            for ch in arg[1..].chars() {
+                match ch {
+                    'v' => {verbose = true;},
+                    'n' => {show_nums = true;},
+                    x => { println!("Flag not found: {}", x); return; }
+                }
+            }
         } else {
             ref_input = arg;
         }
@@ -49,11 +71,19 @@ fn main() {
 
     // Parse the reference
     let reference = Reference::from_str(ref_input).unwrap();
-    println!("{:?}", reference);
+    //println!("{:?}", reference);
     let result = cite(&canon_path, &reference);
     match result {
         Ok(citation) => {
-            println!("{:?}", citation);
+            //println!("{:?}", citation);
+            if verbose {
+                println!("@{}", citation)
+            }
+            for ch in citation.chapters {
+                for v in ch.verses {
+                    println!(" {} {}", v.verse, v.content);
+                }
+            }
         }
         Err(problem) => {
             eprintln!("{}", problem);

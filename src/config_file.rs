@@ -3,12 +3,13 @@ use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq)]
 pub struct GlobalConfig {
     pub priority: Vec<String>,
 }
 
 impl GlobalConfig {
+    /// Loads canon's global configuration file for package management
     pub fn load(path: &PathBuf) -> Result<Self, &'static str> {
 
         // Directory where Canon stores its texts and global config
@@ -65,8 +66,7 @@ impl PackageConfig {
     ///     "2 Nephi": ["2Ne", "2 Ne", "2Ne.", "2 Ne."],
     ///     "Jacob": ["Jac", "Jac."]
     ///   }
-    /// }
-    /// "#;
+    /// }"#;
     /// 
     /// // Deserialize JSON into BookAliases struct
     /// let book_aliases: PackageConfig = serde_json::from_str(json_data).expect("Failed to deserialize");
@@ -80,7 +80,7 @@ impl PackageConfig {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq)]
 pub struct PackageManagerConfig {
     pub priority: Vec<String>,
 }
