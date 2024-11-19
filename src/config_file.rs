@@ -12,11 +12,8 @@ impl GlobalConfig {
     /// Loads canon's global configuration file for package management
     pub fn load(path: &PathBuf) -> Result<Self, &'static str> {
 
-        // Directory where Canon stores its texts and global config
-        let texts_path = path.join("texts");
-
         // Read and marshal Canon's global config file
-        return match fs::read_to_string(texts_path.join("config.json")) {
+        return match fs::read_to_string(path.join("config.json")) {
             Ok(data) => match serde_json::from_str(&data) {
                 Ok(config) => Ok(config),
                 Err(_) => {
@@ -30,8 +27,6 @@ impl GlobalConfig {
     }
 
     pub fn store(&self, path: &PathBuf) -> Result<(), &'static str> {
-        // Directory where Canon stores its texts and global config
-        let texts_path = path.join("texts");
 
         let file = match serde_json::to_string(self) {
             Ok(data) => data,
@@ -39,7 +34,7 @@ impl GlobalConfig {
                 return Err("Failed to create Global Config file");
             }
         };
-        match fs::write(texts_path.join("config.json"), file) {
+        match fs::write(path.join("config.json"), file) {
             Ok(()) => {},
             Err(_) => {
                 return Err("Failed to write Global Config File");

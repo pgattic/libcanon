@@ -8,15 +8,18 @@ use crate::config_file::*;
 pub struct Citation {
     //pub reference: Reference,
     pub book_name: String,
+    pub book_path: PathBuf, // Not an absolute path - excludes the canon path
     pub chapters: Vec<Chapter>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Chapter {
-    pub path: PathBuf,
+    pub path: PathBuf, // Probably the same as `name` but as a PathBuf
     pub name: String,
     pub verses: Vec<Verse>,
     pub entire_chapter: bool,
+    pub left_chapter: Option<Reference>,
+    pub right_chapter: Option<Reference>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -32,13 +35,12 @@ pub fn cite(path: &PathBuf, reference: &Reference) -> Result<Citation, &'static 
 
     let (book, book_path) = find_book(path, &reference.book)?;
 
-
     let mut res_chs: Vec<Chapter> = vec![];
 
     for ref_ind in &reference.indications {
-        let ch_path = book_path.join(&ref_ind.chapter);
+        let ch_path = PathBuf::from(&ref_ind.chapter);
         // Throw away invalid chapters
-        match Chapter::from_ch_reference(ch_path, &ref_ind.verse_ranges) {
+        match Chapter::from_ch_reference(path, &book_path, &ch_path, &ref_ind.verse_ranges) {
             Ok(chapter) => {
                 res_chs.push(chapter);
             }
@@ -50,6 +52,7 @@ pub fn cite(path: &PathBuf, reference: &Reference) -> Result<Citation, &'static 
         Citation {
             chapters: res_chs,
             book_name: book.to_string(),
+            book_path
         }
     )
 }
@@ -58,13 +61,13 @@ pub fn find_book(path: &PathBuf, reference: &str) -> Result<(String, PathBuf), &
 
     let config = GlobalConfig::load(path)?;
 
-    let texts_path = path.join("texts");
     // Search the installed canons in order of their priority
     for dirname in config.priority {
-        let text_path = texts_path.join(dirname);
+        let text_path = PathBuf::from(dirname);
+        //let text_path = texts_path.join(dirname);
 
         // Read and marshal the canon's config (stores book aliases)
-        let pkg_config = match fs::read_to_string(text_path.join("config.json")) {
+        let pkg_config = match fs::read_to_string(path.join(&text_path).join("config.json")) {
             Ok(data) => match PackageConfig::from_str(data) {
                 Ok(config) => config,
                 Err(_) => {
@@ -93,18 +96,22 @@ pub fn find_book(path: &PathBuf, reference: &str) -> Result<(String, PathBuf), &
 }
 
 impl Chapter {
-    pub fn from_ch_reference(ch_path: PathBuf, references: &Vec<RefVerse>) -> Result<Self, &'static str> {
+    pub fn from_ch_reference(path: &PathBuf, book_path: &PathBuf, ch_path: &PathBuf, references: &Vec<RefVerse>) -> Result<Self, &'static str> {
         let mut result = Self {
             name: "".to_string(),
-            path: ch_path.clone(),
+            path: ch_path.clone(), // The path to the chapter from its parent (book) path.
             verses: vec![],
             entire_chapter: false,
+            left_chapter: None,
+            right_chapter: None,
         };
 
-        if !ch_path.exists() {
+        let full_path = path.join(book_path).join(ch_path);
+
+        if !full_path.exists() {
             return Err("Chapter not found");
         }
-        let ch_file = match fs::read_to_string(&ch_path) {
+        let ch_file = match fs::read_to_string(&full_path) {
             Ok(data) => data,
             Err(_) => {
                 return Err("Could not read chapter file")

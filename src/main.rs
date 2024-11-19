@@ -4,7 +4,6 @@ pub mod reference;
 pub mod pkg_mgr;
 pub mod search;
 
-use git2::cert::SshHostKeyType;
 use reference::Reference;
 use libcanon::search::search;
 use citation::*;
@@ -29,7 +28,7 @@ fn main() {
 
     for (i, arg) in args[1..].iter().enumerate() {
         if arg == "list" {
-            let pkgs = pkg_mgr::list(&canon_path).unwrap();
+            let pkgs = pkg_mgr::list(&canon_path.join("texts")).unwrap();
             for pkg in pkgs {
                 println!("\x1b[36;1m{}\x1b[0m", pkg);
             }
@@ -69,19 +68,30 @@ fn main() {
         }
     }
 
+
     // Parse the reference
     let reference = Reference::from_str(ref_input).unwrap();
     //println!("{:?}", reference);
-    let result = cite(&canon_path, &reference);
+    let result = cite(&canon_path.join("texts"), &reference);
     match result {
         Ok(citation) => {
-            //println!("{:?}", citation);
             if verbose {
-                println!("@{}", citation)
+                println!("@{}", citation.book_path.to_str().unwrap());
             }
             for ch in citation.chapters {
+                if verbose {
+                    println!("@@{}", ch.path.to_str().unwrap());
+                }
                 for v in ch.verses {
-                    println!(" {} {}", v.verse, v.content);
+                    if verbose {
+                        println!("@@@{} {}", v.verse, v.content);
+                    } else {
+                        if show_nums {
+                            println!(" {} {}", v.verse, v.content);
+                        } else {
+                            println!("{}", v.content);
+                        }
+                    }
                 }
             }
         }
