@@ -34,13 +34,13 @@ fn main() {
             }
             return;
         } else if arg == "install" {
-            match pkg_mgr::install(&args[i+2], &canon_path) {
+            match pkg_mgr::install(&args[i+2], &canon_path.join("texts")) {
                 Err(what) => {println!("{}", what)}
                 _ => {}
             }
             return;
         } else if arg == "remove" {
-            match pkg_mgr::remove(&args[i+2], &canon_path) {
+            match pkg_mgr::remove(&args[i+2], &canon_path.join("texts")) {
                 Err(what) => {println!("{}", what)}
                 _ => {}
             }

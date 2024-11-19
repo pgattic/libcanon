@@ -89,9 +89,3 @@ fn get_last_two_dirs(path: &Path) -> Option<(String, String)> {
     }
 }
 
-//impl fmt::Display for SearchResult {
-//    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-//        write!(f, "{}:{}", self.book, strings.join("; "))
-//    }
-//}
-
