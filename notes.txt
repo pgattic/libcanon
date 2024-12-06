@@ -1,0 +1,8 @@
+
+@[Verse]:#
+@[Chapter]:
+@[]
+
+[BOOK] [CHAPTER]:[VERSE:#]{-[VERSE:#]}
+
+

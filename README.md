@@ -10,9 +10,8 @@ As of right now, this repository is mainly used for planning and prototyping. No
 | Level             | Description | Technologies |
 |-------------------|-------------|--------------|
 | 1. Canon Packages | The content of the installed books. Managed by libcanon | JSON, Protobuf, YAML, TOML |
-| 2. Marks          | The annotations, notes, bookmarks, and other user data related to canon packages. Managed by libcanon | JSON, Protobuf |
-| 3. libcanon       | Expose functions and constants for interacting with canon packages | Rust |
-| 4. frontend/UI    | The platform-specific code for a user-facing application. Can be a command line app, a native app or web app. | Multiple |
+| 2. libcanon       | Expose functions for interacting with canon packages | Rust |
+| 3. frontend/UI    | The platform-specific code for a user-facing application. Can be a command line app, a native app or web app. | Dioxus |
 | canonutil         | A separate tool for creating Canon packages from existing formats (pdf, epub, etc.) | Python, Rust, JSON, Protobuf, YAML, TOML |
 
 Note: UI implementations may instantiate multiple instances of the primary struct exposed by libcanon e.g. for tabs, windows, etc.
@@ -25,9 +24,8 @@ Note: UI implementations may instantiate multiple instances of the primary struc
 
 ### libcanon
 
-For the moment, full feature parity with the old Go implementation is the goal, although there will be fundamental changes to the canon format in the future. Gradual change is key!
-
-Todo: Package management
+- Full feature parity with Golang implementation
+- Search functinality
 
 ### frontend/UI
 

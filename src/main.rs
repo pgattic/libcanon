@@ -11,6 +11,32 @@ use std::env;
 use dirs::home_dir;
 use std::path::PathBuf;
 
+fn display_help(program: &str) {
+    println!("Usage: {} [COMMAND/REFERENCE] [OPTS]", program);
+    println!();
+    println!("Canon Book Referencer");
+    println!();
+    println!("Commands:");
+    println!("  help                  Display this page");
+    println!("  install [Repo URL]    Install canon package from repository");
+    println!("  list                  List installed Canon packages");
+    println!("  remove [Package]      Remove package by shortname");
+    println!();
+    println!("If anything besides these commands is given, the input is assumed to be a book");
+    println!("reference, followed or preceded by any combination of these reference options:");
+    println!();
+    println!("Reference Options");
+    println!("  -n, --numbered        Print verse/paragraph numbers before each line.");
+    println!("  -p, --paragraph       Print the lines of text with an extra space in between");
+    println!("                        them, as paragraphs.");
+    println!("  -v, --verbose         Print extra information, like where the book was found.");
+    println!("                        Useful for supplementary tools like canonmk. It is not");
+    println!("                        recommended to use -n or -p with -v.");
+    println!();
+    println!("Canon made by Preston Corless (pgattic), free under the MIT License.");
+    println!("More information can be found at https://github.com/pgattic/libcanon");
+
+}
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -23,8 +49,9 @@ fn main() {
 
     let canon_path: PathBuf = home_dir().unwrap().join(".canon");
     let mut ref_input = "";
-    let mut verbose = false;
     let mut show_nums = false;
+    let mut paragraphs = false;
+    let mut verbose = false;
 
     for (i, arg) in args[1..].iter().enumerate() {
         if arg == "list" {
@@ -55,23 +82,34 @@ fn main() {
                 }
             }
             return;
+        } else if arg == "help" {
+            display_help(&args[0]);
+            return;
         } else if arg.starts_with('-') {
-            for ch in arg[1..].chars() {
-                match ch {
-                    'v' => {verbose = true;},
-                    'n' => {show_nums = true;},
-                    x => { println!("Flag not found: {}", x); return; }
+            match &arg[..] {
+                "--numbered" => {show_nums = true;},
+                "--paragraph" => {paragraphs = true;},
+                "--verbose" => {verbose = true;},
+                not_found if not_found.starts_with("--") => { println!("Flag not recognized: {}", not_found); return; }
+                _ => {
+                    for ch in arg[1..].chars() {
+                        match ch {
+                            'n' => {show_nums = true;},
+                            'p' => {paragraphs = true;},
+                            'v' => {verbose = true;},
+                            x => { println!("Flag not recognized: {}", x); return; },
+                        }
+                    }
                 }
             }
         } else {
-            ref_input = arg;
+            ref_input = &arg;
         }
     }
 
 
     // Parse the reference
     let reference = Reference::from_str(ref_input).unwrap();
-    //println!("{:?}", reference);
     let result = cite(&canon_path.join("texts"), &reference);
     match result {
         Ok(citation) => {
@@ -90,6 +128,9 @@ fn main() {
                             println!(" {} {}", v.verse, v.content);
                         } else {
                             println!("{}", v.content);
+                        }
+                        if paragraphs {
+                            println!();
                         }
                     }
                 }

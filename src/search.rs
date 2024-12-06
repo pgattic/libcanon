@@ -11,6 +11,7 @@ pub struct SearchResult {
     pub reference: Reference,
 }
 
+/// Performs a search of all installed Canon packages, returns a list of references
 pub fn search(path: &Path, pattern: &str) -> Result<Vec<SearchResult>, &'static str> {
     // Create a regex matcher for the pattern
     let mut items = vec![];
@@ -37,8 +38,8 @@ pub fn search(path: &Path, pattern: &str) -> Result<Vec<SearchResult>, &'static 
             }
         };
 
-        // Skip directories; we only want files
-        if entry.file_type().map(|ft| ft.is_dir()).unwrap_or(false) {
+        // Skip directories and files that have an extension; we only want book content files
+        if entry.file_type().map(|ft| ft.is_dir()).unwrap_or(false) || entry.file_name().to_str().unwrap_or(".").contains('.') {
             continue;
         }
 
@@ -47,7 +48,6 @@ pub fn search(path: &Path, pattern: &str) -> Result<Vec<SearchResult>, &'static 
             &matcher,
             entry.path(),
             UTF8(|line_number, line| {
-                //items.push(format!("Match found in {}:{}: {}", entry.path().display(), line_number, line));
                 let (book, chapter) = get_last_two_dirs(entry.path()).unwrap();
                 items.push(SearchResult{
                     text: line.to_string(),
@@ -71,6 +71,7 @@ pub fn search(path: &Path, pattern: &str) -> Result<Vec<SearchResult>, &'static 
     Ok(items)
 }
 
+/// Returns the last two dirnames in a given path.
 fn get_last_two_dirs(path: &Path) -> Option<(String, String)> {
     let components: Vec<_> = path.components().filter_map(|c| {
         match c {
