@@ -1,15 +1,21 @@
-use git2::Repository;
+use git2::CertificateCheckStatus;
+use git2::RemoteCallbacks;
 use std::path::PathBuf;
 use crate::config_file::GlobalConfig;
 
+/// Gets the available catalogue of downloadable packages.
+/// For now, just returns a predefined list.
 pub fn get_catalogue() -> Vec<(String, String)> {
     vec![
-        ("bom-canon".to_string(), "https://github.com/pgattic/bom-canon".to_string()),
-        // /archive/refs/heads/master.zip
+        ("ot-kjv-canon".to_string(), "https://github.com/pgattic/ot-kjv-canon.git".to_string()),
+        ("nt-kjv-canon".to_string(), "https://github.com/pgattic/nt-kjv-canon.git".to_string()),
+        ("bom-canon".to_string(), "https://github.com/pgattic/bom-canon.git".to_string()),
+        ("dac-canon".to_string(), "https://github.com/pgattic/dac-canon.git".to_string()),
+        ("pogp-canon".to_string(), "https://github.com/pgattic/pogp-canon.git".to_string()),
     ]
 }
 
-pub fn install(repo_url: &str, path: &PathBuf) -> Result<(), &'static str> {
+pub fn install(repo_url: &str, path: &PathBuf) -> Result<(), String> {
 
     let mut config = GlobalConfig::load(path)?;
 
@@ -23,8 +29,17 @@ pub fn install(repo_url: &str, path: &PathBuf) -> Result<(), &'static str> {
     let into = path.join(repo_name);
 
     // Attempt to clone the repository
-    match Repository::clone(repo_url, into) {
-        Err(_) => {return Err("Unable to download package")},
+    unsafe { let _ = git2::opts::set_verify_owner_validation(false); };
+
+    // FIXME Clone the repo WITHOUT SSL CERT CHECKING!!!
+    let mut callbacks = RemoteCallbacks::new();
+    callbacks.certificate_check(|_, _| Ok(CertificateCheckStatus::CertificateOk));
+    let mut fo = git2::FetchOptions::new();
+    fo.remote_callbacks(callbacks);
+    let mut builder = git2::build::RepoBuilder::new();
+    builder.fetch_options(fo);
+    match builder.clone(repo_url, &into) {
+        Err(asdf) => {return Err(format!("{:?}", asdf))},
         _ => { },
     }
     // If cloned successfully
