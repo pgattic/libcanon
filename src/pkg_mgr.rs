@@ -2,6 +2,13 @@ use git2::Repository;
 use std::path::PathBuf;
 use crate::config_file::GlobalConfig;
 
+pub fn get_catalogue() -> Vec<(String, String)> {
+    vec![
+        ("bom-canon".to_string(), "https://github.com/pgattic/bom-canon".to_string()),
+        // /archive/refs/heads/master.zip
+    ]
+}
+
 pub fn install(repo_url: &str, path: &PathBuf) -> Result<(), &'static str> {
 
     let mut config = GlobalConfig::load(path)?;
