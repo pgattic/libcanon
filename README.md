@@ -5,6 +5,12 @@ A Rewrite of Canon as a rust library (and as much more!)
 
 As of right now, this repository is mainly used for planning and prototyping. No decisions are final.
 
+## Usage with Nix
+
+Since this repo provides both a library and a simple reference CLI application, it can be built standalone.
+
+Build with `nix build .`. Run with `nix run .`, or run remotely with `nix run github:pgattic/libcanon`.
+
 ## Application Stack
 
 | Level             | Description | Technologies |

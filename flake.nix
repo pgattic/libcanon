@@ -1,25 +1,32 @@
 {
-  description = "libcanon dev environment";
+  description = "(Lib)Canon dev environment";
+
   inputs = {
-    naersk.url = "github:nix-community/naersk/master";
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    utils.url = "github:numtide/flake-utils";
+    flake-parts.url = "github:hercules-ci/flake-parts";
   };
 
-  outputs = { self, nixpkgs, utils, naersk }: utils.lib.eachDefaultSystem (
-    system: let
-      pkgs = import nixpkgs { inherit system; };
-      naersk-lib = pkgs.callPackage naersk { };
-    in {
-      defaultPackage = naersk-lib.buildPackage ./.;
-      devShell = with pkgs; mkShell {
-        buildInputs = [
-          cargo rustc rustfmt rust-analyzer pre-commit rustPackages.clippy # Rust stuff
-          pkg-config
-          openssl
-        ];
-        RUST_SRC_PATH = rustPlatform.rustLibSrc;
+  outputs = inputs: inputs.flake-parts.lib.mkFlake { inherit inputs; } {
+    systems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
+
+    perSystem = { pkgs, self', ... }: {
+      packages.default = pkgs.rustPlatform.buildRustPackage {
+        pname = "canon";
+        version = "1.0.0";
+        src = ./.;
+
+        buildInputs = [ pkgs.openssl ];
+        nativeBuildInputs = [ pkgs.pkg-config ];
+        cargoLock.lockFile = ./Cargo.lock;
       };
-    }
-  );
+
+      devShells.default = pkgs.mkShell {
+        inputsFrom = [ self'.packages.default ];
+        packages = with pkgs; [
+          cargo rustc rustfmt rust-analyzer
+        ];
+      };
+    };
+  };
 }
+

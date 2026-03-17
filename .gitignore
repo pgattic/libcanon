@@ -1,12 +1,7 @@
-
 __pycache__
-target
-Cargo.lock
 *.pb
 *_pb2.py
 
+result
+target
 
-
-# Added by cargo
-
-/target
